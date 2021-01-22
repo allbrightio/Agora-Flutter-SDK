@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
@@ -894,6 +895,14 @@ class RtcEngine with RtcEngineInterface {
     return _invokeMethod('setVoiceBeautifierPreset',
         {'preset': VoiceBeautifierPresetConverter(preset).value()});
   }
+
+  @override
+  Future<void> pushExternalAudioFrame(Uint8List data, int timestamp) {
+    return _invokeMethod('pushExternalAudioFrame', {
+      'data': data,
+      'timestamp': timestamp
+    });
+  }
 }
 
 /// @nodoc
@@ -1359,6 +1368,15 @@ mixin RtcAudioInterface {
   /// - `false`: (Default) Disable the voice activity detection of the local user. Once it is disabled, the vad parameter of the [RtcEngineEventHandler.audioVolumeIndication] callback does not report the voice activity status of the local user, except for scenarios where the engine automatically detects the voice activity of the local user.
   Future<void> enableAudioVolumeIndication(
       int interval, int smooth, bool report_vad);
+
+  /// Pushes the external audio frame to the Agora SDK for encoding.
+  ///
+  /// **Parameter** [data] External audio data to be pushed.
+  ///
+  /// **Parameter** [timestamp] Timestamp (ms) of the external audio frame. It is mandatory. You can use this parameter for the following purposes:
+  /// - Restore the order of the captured audio frame.
+  /// - Synchronize audio and video frames in video-related scenarios, including scenarios where external video sources are used.
+  Future<void> pushExternalAudioFrame(Uint8List data, int timestamp);
 }
 
 /// @nodoc
