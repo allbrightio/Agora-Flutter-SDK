@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as RtcLocalView;
@@ -8,6 +10,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_recognition/local_audio_service.dart';
 
 /// MultiChannel Example
 class JoinChannelVideo extends StatefulWidget {
@@ -23,10 +26,20 @@ class _State extends State<JoinChannelVideo> {
   List<int> remoteUid = [];
   TextEditingController _controller;
 
+  LocalAudioService _audioService;
+
+  StreamController<Uint8List> _soundBuffer;
+
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: channelId);
+    _soundBuffer = StreamController.broadcast();
+    _audioService = LocalAudioService.microphone();
+    _audioService.localAudioStream.listen((event) {
+      _soundBuffer.add(Uint8List.fromList(event));
+    });
+
     this._initEngine();
   }
 
@@ -40,10 +53,19 @@ class _State extends State<JoinChannelVideo> {
     widget._engine = await RtcEngine.create(config.appId);
     this._addListeners();
 
+    await widget._engine.setExternalAudioSource(true, 16000, 1);
+
+    _soundBuffer.stream.listen((buffer) async {
+      await widget._engine.pushExternalAudioFrame(
+          buffer, DateTime.now().millisecondsSinceEpoch);
+    });
+
     await widget._engine.enableVideo();
     await widget._engine.startPreview();
     await widget._engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
     await widget._engine.setClientRole(ClientRole.Broadcaster);
+
+
   }
 
   _addListeners() {
