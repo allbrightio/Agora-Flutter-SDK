@@ -89,6 +89,8 @@ class IRtcEngine {
     fun enableAudioVolumeIndication(params: Map<String, *>, callback: Callback)
 
     fun pushExternalAudioFrame(params: Map<String, *>, callback: Callback)
+
+    fun setExternalAudioSource(params: Map<String, *>, callback: Callback)
   }
 
   interface RtcVideoInterface {
@@ -506,6 +508,8 @@ class RtcEngineManager(
     callback.code(engine?.enableAudioVolumeIndication((params["interval"] as Number).toInt(), (params["smooth"] as Number).toInt(), params["report_vad"] as Boolean))
   }
 
+
+
   override fun pushExternalAudioFrame(params: Map<String, *>, callback: Callback) {
     callback.code(
       engine?.pushExternalAudioFrame(
@@ -513,7 +517,16 @@ class RtcEngineManager(
         (params["timestamp"] as Number).toLong()
       )
     )
+  }
 
+  override fun setExternalAudioSource(params: Map<String, *>, callback: Callback) {
+    callback.code(
+      engine?.setExternalAudioSource(
+        params["enabled"] as Boolean,
+        params["sampleRate"] as Int,
+        params["channels"] as Int
+      )
+    )
   }
 
   override fun enableVideo(callback: Callback) {
