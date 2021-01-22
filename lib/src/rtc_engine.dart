@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
@@ -894,6 +895,23 @@ class RtcEngine with RtcEngineInterface {
     return _invokeMethod('setVoiceBeautifierPreset',
         {'preset': VoiceBeautifierPresetConverter(preset).value()});
   }
+
+  @override
+  Future<void> pushExternalAudioFrame(Uint8List data, int timestamp) {
+    return _invokeMethod(
+        'pushExternalAudioFrame', {'data': data, 'timestamp': timestamp});
+  }
+
+  @override
+  Future<void> setExternalAudioSource(bool enabled, int sampleRate, int channels) {
+    return _invokeMethod('setExternalAudioSource', {
+      'enabled': enabled,
+      'sampleRate': sampleRate,
+      'channels': channels
+    });
+  }
+
+
 }
 
 /// @nodoc
@@ -1359,6 +1377,30 @@ mixin RtcAudioInterface {
   /// - `false`: (Default) Disable the voice activity detection of the local user. Once it is disabled, the vad parameter of the [RtcEngineEventHandler.audioVolumeIndication] callback does not report the voice activity status of the local user, except for scenarios where the engine automatically detects the voice activity of the local user.
   Future<void> enableAudioVolumeIndication(
       int interval, int smooth, bool report_vad);
+
+  /// Pushes the external audio frame to the Agora SDK for encoding.
+  ///
+  /// **Parameter** [data] External audio data to be pushed.
+  ///
+  /// **Parameter** [timestamp] Timestamp (ms) of the external audio frame. It is mandatory. You can use this parameter for the following purposes:
+  /// - Restore the order of the captured audio frame.
+  /// - Synchronize audio and video frames in video-related scenarios, including scenarios where external video sources are used.
+  Future<void> pushExternalAudioFrame(Uint8List data, int timestamp);
+
+  /// Sets the external audio source.
+  ///
+  /// **NOTE:** Ensure that you call this method before the [joinChannel] and [startPreview] methods.
+  ///
+  /// **Parameter** [enabled] Whether to enable/disable the external audio source:
+  /// - `true`: Enable the external audio source.
+  /// - `false`: (Default) Disable the external audio source.
+  ///
+  /// **Parameter** [sampleRate] The sample rate (Hz) of the external audio source, which can be set as 8000, 16000, 32000, 44100, or 48000 Hz.
+  ///
+  /// **Parameter** [channels] The number of channels of the external audio source:
+  /// - 1: Mono
+  /// - 2: Stereo
+  Future<void> setExternalAudioSource(bool enabled, int sampleRate, int channels);
 }
 
 /// @nodoc
