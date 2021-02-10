@@ -35,7 +35,15 @@ class AgoraRtcChannelPlugin(
     methodChannel.setMethodCallHandler(this)
     eventChannel = EventChannel(binaryMessenger, "agora_rtc_channel/events")
     eventChannel.setStreamHandler(this)
+
+    // init audio observers
+    val recordedAudioEventChannel = EventChannel(binaryMessenger, "agora_rtc_channel/recorded_audio_observer")
+    val playbackAudioEventChannel = EventChannel(binaryMessenger, "agora_rtc_channel/playback_audio_observer")
+    val audioFrameObserver = FlutterAudioFrameObserver(rtcEnginePlugin)
+    recordedAudioEventChannel.setStreamHandler(audioFrameObserver.onRecordFrameStreamHandler)
+    playbackAudioEventChannel.setStreamHandler(audioFrameObserver.onPlaybackStreamHandler)
   }
+
 
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     initPlugin(binding.binaryMessenger)
