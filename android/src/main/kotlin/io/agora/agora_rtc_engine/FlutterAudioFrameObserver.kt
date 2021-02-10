@@ -28,13 +28,33 @@ class MainThreadEventSink(private val eventSink: EventChannel.EventSink) : Event
   }
 }
 
+inline fun <reified T> Map<* , *>.getAndCast(key: Any, default: T): T {
+  val value = get(key)
+  return if (value is T?) {
+    value as T
+  } else {
+    default
+  }
+}
 
 class FlutterAudioFrameObserver(private val rtcEnginePlugin: AgoraRtcEnginePlugin) : IAudioFrameObserver {
 
 
   val onRecordFrameStreamHandler = object : EventChannel.StreamHandler {
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-      rtcEnginePlugin.engine()?.setRecordingAudioFrameParameters(16000, 1, Constants.RAW_AUDIO_FRAME_OP_MODE_READ_ONLY, 1024)
+      var sampleRate = 48000
+      var channels = 2
+      var mode = Constants.RAW_AUDIO_FRAME_OP_MODE_READ_ONLY
+      var samplesPerCall = 1024
+
+      if (arguments is Map<*, *>) {
+        sampleRate = arguments.getAndCast("sampleRate", sampleRate)
+        channels = arguments.getAndCast("channels", channels)
+        mode = arguments.getAndCast("mode", mode)
+        samplesPerCall = arguments.getAndCast("samplesPerCall", samplesPerCall)
+      }
+
+      rtcEnginePlugin.engine()?.setRecordingAudioFrameParameters(sampleRate, channels, mode, samplesPerCall)
       onRecordFrameSink = events?.let { MainThreadEventSink(it) }
       if (onPlaybackFrameSink == null) {
         rtcEnginePlugin.engine()?.registerAudioFrameObserver(this@FlutterAudioFrameObserver)
@@ -52,6 +72,19 @@ class FlutterAudioFrameObserver(private val rtcEnginePlugin: AgoraRtcEnginePlugi
 
   val onPlaybackStreamHandler = object : EventChannel.StreamHandler {
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+      var sampleRate = 48000
+      var channel = 2
+      var mode = Constants.RAW_AUDIO_FRAME_OP_MODE_READ_ONLY
+      var samplesPerCall = 1024
+
+      if (arguments is Map<*, *>) {
+        sampleRate = arguments.getAndCast("sampleRate", sampleRate)
+        channel = arguments.getAndCast("channel", channel)
+        mode = arguments.getAndCast("mode", mode)
+        samplesPerCall = arguments.getAndCast("samplesPerCall", samplesPerCall)
+      }
+
+      rtcEnginePlugin.engine()?.setPlaybackAudioFrameParameters(sampleRate, channel, mode, samplesPerCall)
       onPlaybackFrameSink = events?.let {  MainThreadEventSink(it) }
       if (onRecordFrameSink == null) {
         rtcEnginePlugin.engine()?.registerAudioFrameObserver(this@FlutterAudioFrameObserver)

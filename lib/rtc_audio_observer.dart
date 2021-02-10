@@ -8,16 +8,38 @@ class RtcAudioObserver {
   final _playbackAudioEventChannel =
       EventChannel('agora_rtc_channel/playback_audio_observer');
 
-  Stream<RtcAudioFrame> observeRecordedAudioFrames() {
-    return _recordedAudioEventChannel.receiveBroadcastStream().map((event) {
+  /// * **sampleRate** The sample rate (samplesPerSec) which can be set as 8000, 16000, 32000, 44100, or 48000 Hz.
+  /// * **channels** The number of channels (Mono - 1, Stereo - 2),
+  /// * **samplesPerEvent** The number of samples in single event emitted by the stream.
+  Stream<RtcAudioFrame> observeRecordedAudioFrames({
+    int sampleRate = 48000,
+    int channels = 2,
+    int samplesPerEvent = 1024,
+  }) {
+    return _recordedAudioEventChannel.receiveBroadcastStream({
+      'sampleRate': sampleRate,
+      'channels': channels,
+      'samplesPerCall': samplesPerEvent,
+      'mode': 0, // read only
+    }).map((event) {
       return RtcAudioFrame.fromMap((event as Map).cast<String, dynamic>());
     });
   }
 
-  Stream<RtcAudioFrame> observePlaybackAudioFrames() {
-    return _playbackAudioEventChannel
-        .receiveBroadcastStream()
-        .map((event) => RtcAudioFrame.fromMap(event as Map<String, dynamic>));
+  /// * **sampleRate** The sample rate (samplesPerSec) which can be set as 8000, 16000, 32000, 44100, or 48000 Hz.
+  /// * **channels** The number of channels (Mono - 1, Stereo - 2),
+  /// * **samplesPerEvent** The number of samples in single event emitted by the stream.
+  Stream<RtcAudioFrame> observePlaybackAudioFrames({
+    int sampleRate = 48000,
+    int channels = 2,
+    int samplesPerEvent = 1024,
+  }) {
+    return _playbackAudioEventChannel.receiveBroadcastStream({
+      'sampleRate': sampleRate,
+      'channels': channels,
+      'samplesPerCall': samplesPerEvent,
+      'mode': 0, // read only
+    }).map((event) => RtcAudioFrame.fromMap(event as Map<String, dynamic>));
   }
 }
 
@@ -50,7 +72,7 @@ class RtcAudioFrame {
 
   @override
   String toString() {
-    return 'RtcAudioFrame(samples: $samples, numOfSamples: $numOfSamples, bytesPerSample: $bytesPerSample, channels: $channels, samplesPerSec: $samplesPerSec)';
+    return 'RtcAudioFrame(numOfSamples: $numOfSamples, bytesPerSample: $bytesPerSample, channels: $channels, samplesPerSec: $samplesPerSec, samples: $samples)';
   }
 
   @override
