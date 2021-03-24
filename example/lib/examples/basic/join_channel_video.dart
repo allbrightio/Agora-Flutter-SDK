@@ -10,7 +10,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:speech_recognition/local_audio_service.dart';
 
 /// MultiChannel Example
 class JoinChannelVideo extends StatefulWidget {
@@ -25,20 +24,10 @@ class _State extends State<JoinChannelVideo> {
   List<int> remoteUid = [];
   TextEditingController? _controller;
 
-  LocalAudioService _audioService;
-
-  StreamController<Uint8List> _soundBuffer;
-
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: channelId);
-    _soundBuffer = StreamController.broadcast();
-    _audioService = LocalAudioService.microphone();
-    _audioService.localAudioStream.listen((event) {
-      _soundBuffer.add(Uint8List.fromList(event));
-    });
-
     this._initEngine();
   }
 
@@ -51,13 +40,6 @@ class _State extends State<JoinChannelVideo> {
   _initEngine() async {
     _engine = await RtcEngine.createWithConfig(RtcEngineConfig(config.appId));
     this._addListeners();
-
-    await _engine.setExternalAudioSource(true, 16000, 1);
-
-    _soundBuffer.stream.listen((buffer) async {
-      await _engine.pushExternalAudioFrame(
-          buffer, DateTime.now().millisecondsSinceEpoch);
-    });
 
     await _engine.enableVideo();
     await _engine.startPreview();
