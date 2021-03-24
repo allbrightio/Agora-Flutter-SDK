@@ -51,16 +51,14 @@ class RtcAudioFrame {
   final int samplesPerSec;
 
   const RtcAudioFrame({
-    this.samples,
-    this.numOfSamples,
-    this.bytesPerSample,
-    this.channels,
-    this.samplesPerSec,
+    required this.samples,
+    required this.numOfSamples,
+    required this.bytesPerSample,
+    required this.channels,
+    required this.samplesPerSec,
   });
 
   factory RtcAudioFrame.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return RtcAudioFrame(
       samples: map['samples'] ?? [],
       numOfSamples: map['numOfSamples'],
