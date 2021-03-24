@@ -15,18 +15,19 @@ class RtcChannel with RtcChannelInterface {
   static const EventChannel _eventChannel =
       EventChannel('agora_rtc_channel/events');
 
-  static StreamSubscription _subscription;
+  static StreamSubscription? _subscription;
 
   static final Map<String, RtcChannel> _channels = {};
 
   /// The ID of RtcChannel
   final String channelId;
 
-  RtcChannelEventHandler _handler;
+  RtcChannelEventHandler? _handler;
 
   RtcChannel._(this.channelId);
 
-  Future<T> _invokeMethod<T>(String method, [Map<String, dynamic> arguments]) {
+  Future<T?> _invokeMethod<T>(String method,
+      [Map<String, dynamic>? arguments]) {
     return _methodChannel.invokeMethod(
         method,
         arguments == null
@@ -44,12 +45,12 @@ class RtcChannel with RtcChannelInterface {
   /// - All uppercase English letters: A to Z.
   /// - All numeric characters: 0 to 9.
   /// - The space character.
-  /// - Punctuation characters and other symbols, including: "!", "#", "$", "%", "&", "(", ")", "+", "-", ":", ";", "<", "=", ".", ">", "?", "@", "[", "]", "^", "_", " {", "}", "|", "~", ",".
+  /// - Punctuation characters and other symbols, including: "!", "#", "$", "%", "&", "(", ")", "+", "-", ":", ";", "<", "=", ".", ">", "?", "@", "\[", "\]", "^", "_", " {", "}", "|", "~", ",".
   static Future<RtcChannel> create(String channelId) async {
-    if (_channels.containsKey(channelId)) return _channels[channelId];
+    if (_channels.containsKey(channelId)) return _channels[channelId]!;
     await _methodChannel.invokeMethod('create', {'channelId': channelId});
     _channels[channelId] = RtcChannel._(channelId);
-    return _channels[channelId];
+    return _channels[channelId]!;
   }
 
   /// Destroys all [RtcChannel] instance.
@@ -85,7 +86,7 @@ class RtcChannel with RtcChannelInterface {
   }
 
   @override
-  Future<void> setClientRole(ClientRole role, [ClientRoleOptions options]) {
+  Future<void> setClientRole(ClientRole role, [ClientRoleOptions? options]) {
     return _invokeMethod('setClientRole', {
       'role': ClientRoleConverter(role).value(),
       'options': options?.toJson()
@@ -93,7 +94,7 @@ class RtcChannel with RtcChannelInterface {
   }
 
   @override
-  Future<void> joinChannel(String token, String optionalInfo, int optionalUid,
+  Future<void> joinChannel(String? token, String? optionalInfo, int optionalUid,
       ChannelMediaOptions options) {
     return _invokeMethod('joinChannel', {
       'token': token,
@@ -105,7 +106,7 @@ class RtcChannel with RtcChannelInterface {
 
   @override
   Future<void> joinChannelWithUserAccount(
-      String token, String userAccount, ChannelMediaOptions options) {
+      String? token, String userAccount, ChannelMediaOptions options) {
     return _invokeMethod('joinChannelWithUserAccount', {
       'token': token,
       'userAccount': userAccount,
@@ -141,7 +142,7 @@ class RtcChannel with RtcChannelInterface {
   }
 
   @override
-  Future<String> getCallId() {
+  Future<String?> getCallId() {
     return _invokeMethod('getCallId');
   }
 
@@ -162,6 +163,7 @@ class RtcChannel with RtcChannelInterface {
   }
 
   @override
+  @deprecated
   Future<void> setDefaultMuteAllRemoteAudioStreams(bool muted) {
     return _invokeMethod(
         'setDefaultMuteAllRemoteAudioStreams', {'muted': muted});
@@ -178,6 +180,7 @@ class RtcChannel with RtcChannelInterface {
   }
 
   @override
+  @deprecated
   Future<void> setDefaultMuteAllRemoteVideoStreams(bool muted) {
     return _invokeMethod(
         'setDefaultMuteAllRemoteVideoStreams', {'muted': muted});
@@ -196,7 +199,8 @@ class RtcChannel with RtcChannelInterface {
   }
 
   @override
-  Future<int> createDataStream(bool reliable, bool ordered) {
+  @deprecated
+  Future<int?> createDataStream(bool reliable, bool ordered) {
     return _invokeMethod(
         'createDataStream', {'reliable': reliable, 'ordered': ordered});
   }
@@ -228,6 +232,7 @@ class RtcChannel with RtcChannelInterface {
   }
 
   @override
+  @deprecated
   Future<void> setEncryptionMode(EncryptionMode encryptionMode) {
     return _invokeMethod('setEncryptionMode',
         {'encryptionMode': EncryptionModeConverter(encryptionMode).value()});
@@ -240,7 +245,6 @@ class RtcChannel with RtcChannelInterface {
   }
 
   @override
-  @deprecated
   Future<void> setLiveTranscoding(LiveTranscoding transcoding) {
     return _invokeMethod(
         'setLiveTranscoding', {'transcoding': transcoding.toJson()});
@@ -310,6 +314,18 @@ class RtcChannel with RtcChannelInterface {
     return _invokeMethod(
         'enableEncryption', {'enabled': enabled, 'config': config.toJson()});
   }
+
+  @override
+  Future<int?> createDataStreamWithConfig(DataStreamConfig config) {
+    return _invokeMethod(
+        'createDataStreamWithConfig', {'config': config.toJson()});
+  }
+
+  @override
+  Future<void> enableRemoteSuperResolution(int uid, bool enable) {
+    return _invokeMethod(
+        'enableRemoteSuperResolution', {'uid': uid, 'enable': enable});
+  }
 }
 
 /// @nodoc
@@ -337,14 +353,14 @@ mixin RtcChannelInterface
   ///
   /// **Note**
   /// - This method applies to the `LiveBroadcasting` profile only (when the `profile` parameter in `setChannelProfile` is set as `LiveBroadcasting`).
-  /// - Since v3.2.0, this method can set the user level in addition to the user role.
+  /// - Since v3.2.1, this method can set the user level in addition to the user role.
   ///    - The user role determines the permissions that the SDK grants to a user, such as permission to send local streams, receive remote streams, and push streams to a CDN address.
   ///    - The user level determines the level of services that a user can enjoy within the permissions of the user's role. For example, an audience can choose to receive remote streams with low latency or ultra low latency. Levels affect prices.
   ///
   /// **Parameter** [role] The role of the user. See [ClientRole].
   ///
   /// **Parameter** [options] The detailed options of a user, including user level. See [ClientRoleOptions].
-  Future<void> setClientRole(ClientRole role, [ClientRoleOptions options]);
+  Future<void> setClientRole(ClientRole role, [ClientRoleOptions? options]);
 
   /// Joins the channel with a user ID.
   ///
@@ -353,7 +369,6 @@ mixin RtcChannelInterface
   ///   - Contains the `options` parameter, which decides whether to subscribe to all streams before joining the channel.
   ///   - Users can join multiple channels simultaneously by creating multiple `RtcChannel` instances and calling the `joinChannel` method of each instance.
   ///   - By default, the SDK does not publish any stream after the user joins the channel. You need to call the publish method to do that.
-  ///
   ///
   /// - [RtcEngine.joinChannel]
   ///   - Contains the `channelName` parameter, which specifies the channel to join.
@@ -369,16 +384,14 @@ mixin RtcChannelInterface
   /// - If you want to join the same channel from different devices, ensure that the UIDs in all devices are different.
   /// - Ensure that the app ID you use to generate the token is the same with the app ID used when creating the [RtcEngine] instance.
   ///
-  /// **Parameter** [token] The token generated at your server.
-  /// - In situations not requiring high security: You can use the temporary token generated at Console. For details, see [Get a temporary token](https://docs.agora.io/en/Agora%20Platform/token?platform=All%20Platforms#temptoken).
-  /// - In situations requiring high security: Set it as the token generated at your server. For details, see [Get a token](https://docs.agora.io/en/Agora%20Platform/token?platform=All%20Platforms#generatetoken).
+  /// **Parameter** [token] The token generated at your server.Set it as the token generated at your server. For details, see [Get a token](https://docs.agora.io/en/Agora%20Platform/token?platform=All%20Platforms#generatetoken).
   ///
   /// **Parameter** [optionalInfo] Additional information about the channel. This parameter can be set as null. Other users in the channel do not receive this information.
   ///
   /// **Parameter** [optionalUid] The user ID. A 32-bit unsigned integer with a value ranging from 1 to (232-1). This parameter must be unique. If uid is not assigned (or set as 0), the SDK assigns a uid and reports it in the `onJoinChannelSuccess` callback. The app must maintain this user ID.
   ///
   /// **Parameter** [options] The channel media options. See [ChannelMediaOptions].
-  Future<void> joinChannel(String token, String optionalInfo, int optionalUid,
+  Future<void> joinChannel(String? token, String? optionalInfo, int optionalUid,
       ChannelMediaOptions options);
 
   /// Joins a channel with the user account.
@@ -389,21 +402,19 @@ mixin RtcChannelInterface
   /// - If you want to join the same channel from different devices, ensure that the user accounts in all devices are different.
   /// - Ensure that the app ID you use to generate the token is the same with the app ID used when creating the [RtcEngine] instance.
   ///
-  /// **Parameter** [token] The token generated at your server.
-  /// - In situations not requiring high security: You can use the temporary token generated at Console. For details, see [Get a temporary token](https://docs.agora.io/en/Agora%20Platform/token?platform=All%20Platforms#temptoken).
-  /// - In situations requiring high security: Set it as the token generated at your server. For details, see [Get a token](https://docs.agora.io/en/Agora%20Platform/token?platform=All%20Platforms#generatetoken).
+  /// **Parameter** [token] The token generated at your server. Set it as the token generated at your server. For details, see [Get a token](https://docs.agora.io/en/Agora%20Platform/token?platform=All%20Platforms#generatetoken).
   ///
   /// **Parameter** [userAccount] The user account. The maximum length of this parameter is 255 bytes. Ensure that you set this parameter and do not set it as null.
   /// - All lowercase English letters: a to z.
   /// - All uppercase English letters: A to Z.
   /// - All numeric characters: 0 to 9.
   /// - The space character.
-  /// - Punctuation characters and other symbols, including: "!", "#", "$", "%", "&", "(", ")", "+", "-", ":", ";", "<", "=", ".", ">", "?", "@", "[", "]", "^", "_", " {", "}", "|", "~", ",".
+  /// - Punctuation characters and other symbols, including: "!", "#", "$", "%", "&", "(", ")", "+", "-", ":", ";", "<", "=", ".", ">", "?", "@", "\[", "\]", "^", "_", " {", "}", "|", "~", ",".
   ///
   /// **Parameter** [options] The channel media options. See [ChannelMediaOptions].
   ///
   Future<void> joinChannelWithUserAccount(
-      String token, String userAccount, ChannelMediaOptions options);
+      String? token, String userAccount, ChannelMediaOptions options);
 
   /// Leaves the current channel.
   ///
@@ -442,7 +453,7 @@ mixin RtcChannelInterface
   ///  **Returns**
   /// - The current call ID, if the method call succeeds.
   /// - The empty string "", if the method call fails.
-  Future<String> getCallId();
+  Future<String?> getCallId();
 }
 
 /// @nodoc
@@ -482,9 +493,14 @@ mixin RtcAudioInterface {
 
   /// Sets whether to receive all remote audio streams by default.
   ///
+  /// **Deprecated**
+  ///
+  /// This method is deprecated from v3.3.1.
+  ///
   /// **Parameter** [muted] Determines whether to receive/stop receiving all remote audio streams by default:
   /// - `true`: Stop receiving all remote audio streams by default.
   /// - `false`: (Default) Receive all remote audio streams by default.
+  @deprecated
   Future<void> setDefaultMuteAllRemoteAudioStreams(bool muted);
 }
 
@@ -508,10 +524,18 @@ mixin RtcVideoInterface {
 
   /// Sets whether to receive all remote video streams by default.
   ///
+  /// **Deprecated**
+  ///
+  /// This method is deprecated from v3.3.1.
+  ///
   /// **Parameter** [muted] Determines whether to receive/stop receiving all remote video streams by default:
   /// - `true`: Stop receiving all remote video streams by default.
   /// - `false`: (Default) Receive all remote video streams by default.
+  @deprecated
   Future<void> setDefaultMuteAllRemoteVideoStreams(bool muted);
+
+  ///  @nodoc
+  Future<void> enableRemoteSuperResolution(int uid, bool enable);
 }
 
 /// @nodoc
@@ -522,7 +546,7 @@ mixin RtcVoicePositionInterface {
   ///
   /// **Note**
   /// - For this method to work, enable stereo panning for remote users by calling the [RtcEngine.enableSoundPositionIndication] method before joining a channel.
-  /// - This method requires hardware support. For the best sound positioning, we recommend using a stereo headset.
+  /// - This method requires hardware support. For the best sound positioning, we recommend using a wired headset.
   ///
   /// **Parameter** [uid] The ID of the remote user.
   ///
@@ -640,6 +664,10 @@ mixin RtcDualStreamInterface {
   Future<void> setRemoteVideoStreamType(int uid, VideoStreamType streamType);
 
   /// Sets the default video-stream type of the remote video stream when the remote user sends dual streams.
+  ///
+  /// You can call this method either before or after joining a channel.
+  /// If you call both [setRemoteVideoStreamType] and [setRemoteDefaultVideoStreamType], the SDK applies the settings in the [setRemoteVideoStreamType] method.
+  ///
   /// **Parameter** [streamType] Sets the default video-stream type. See [VideoStreamType].
   Future<void> setRemoteDefaultVideoStreamType(VideoStreamType streamType);
 }
@@ -681,7 +709,9 @@ mixin RtcMediaMetadataInterface {
   /// Sends the metadata.
   ///
   /// **Parameter** [metadata] The metadata to be sent in the form of String.
+  ///
   /// **Note**
+  ///
   /// Ensure that the size of the metadata does not exceed the value set in the [setMaxMetadataSize] method.
   Future<void> sendMetadata(String metadata);
 }
@@ -747,6 +777,10 @@ mixin RtcInjectStreamInterface {
   ///
   /// If this method call succeeds, the server pulls the voice or video stream and injects it into a live channel. This applies to scenarios where all audience members in the channel can watch a live show and interact with each other.
   ///
+  /// **Warning**
+  ///
+  /// Agora will soon stop the service for injecting online media streams on the client. If you have not implemented this service, Agora recommends that you do not use it.
+  ///
   /// **Note**
   /// - Ensure that you enable the RTMP Converter service before using this function. See Prerequisites in *Push Streams to CDN*.
   /// - This method can only be called by a broadcaster in a [ChannelProfile.LiveBroadcasting] channel .
@@ -779,6 +813,10 @@ mixin RtcStreamMessageInterface {
   ///
   /// Each user can create up to five data streams during the life cycle of the [RtcChannel] instance.
   ///
+  /// **Deprecated**
+  ///
+  /// This method is deprecated from v3.3.1.
+  ///
   /// **Note**
   /// - Set both the reliable and ordered parameters to true or false. Do not set one as true and the other as false.
   ///
@@ -793,7 +831,23 @@ mixin RtcStreamMessageInterface {
   /// **Returns**
   /// - 0: Success.
   /// - < 0: Failure.
-  Future<int> createDataStream(bool reliable, bool ordered);
+  @deprecated
+  Future<int?> createDataStream(bool reliable, bool ordered);
+
+  ///  Creates a data stream.
+  ///
+  /// Since v3.3.1.
+  ///
+  /// Each user can create up to five data streams in a single channel.
+  ///
+  /// This method does not support data reliability. If the receiver receives a data packet five seconds or more after it was sent, the SDK directly discards the data.
+  ///
+  /// **Parameter** [config] The configurations for the data stream: [DataStreamConfig].
+  ///
+  /// **Returns**
+  /// - Returns the stream ID if you successfully create the data stream.
+  /// - < 0: Fails to create the data stream.
+  Future<int?> createDataStreamWithConfig(DataStreamConfig config);
 
   /// Sends the data stream message.
   ///
