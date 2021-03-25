@@ -103,6 +103,8 @@ class FlutterAudioFrameObserver(private val rtcEnginePlugin: AgoraRtcEnginePlugi
   private var onRecordFrameSink: EventChannel.EventSink? = null
   private var onPlaybackFrameSink: EventChannel.EventSink? = null
 
+
+
   override fun onRecordFrame(samples: ByteArray?, numOfSamples: Int, bytesPerSample: Int, channels: Int, samplesPerSec: Int): Boolean {
     onRecordFrameSink?.success(mapOf(
       "samples" to samples,
@@ -124,6 +126,22 @@ class FlutterAudioFrameObserver(private val rtcEnginePlugin: AgoraRtcEnginePlugi
         "samplesPerSec" to samplesPerSec
       )
     )
+    return true
+  }
+
+  override fun onMixedFrame(samples: ByteArray?, numOfSamples: Int, bytesPerSample: Int, channels: Int, samplesPerSec: Int): Boolean {
+    return true
+  }
+
+  override fun isMultipleChannelFrameWanted(): Boolean {
+    return true
+  }
+
+  override fun onPlaybackFrameBeforeMixing(samples: ByteArray?, numOfSamples: Int, bytesPerSample: Int, channels: Int, samplesPerSec: Int, uid: Int): Boolean {
+    return true
+  }
+
+  override fun onPlaybackFrameBeforeMixingEx(samples: ByteArray?, numOfSamples: Int, bytesPerSample: Int, channels: Int, samplesPerSec: Int, uid: Int, channelId: String?): Boolean {
     return true
   }
 }
